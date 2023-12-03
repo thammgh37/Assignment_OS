@@ -14,18 +14,74 @@
  *@rg_elmt: new region
  *
  */
-int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct rg_elmt)
+int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct* rg_elmt)
 {
   struct vm_rg_struct *rg_node = mm->mmap->vm_freerg_list;
 
-  if (rg_elmt.rg_start >= rg_elmt.rg_end)
+  if (rg_elmt->rg_start >= rg_elmt->rg_end)
     return -1;
 
-  if (rg_node != NULL)
-    rg_elmt.rg_next = rg_node;
-
   /* Enlist the new region */
-  mm->mmap->vm_freerg_list = &rg_elmt;
+  rg_elmt->rg_next = NULL;
+  if (rg_node == NULL) {
+    mm->mmap->vm_freerg_list = rg_elmt;
+  }
+  else if(rg_elmt->rg_end <= rg_node->rg_start) {
+    if(rg_elmt->rg_end < rg_node->rg_start) {
+      rg_elmt->rg_next = rg_node;
+      mm->mmap->vm_freerg_list = rg_elmt;
+    }
+    else {
+      rg_node->rg_start = rg_elmt->rg_start;
+      free(rg_elmt);
+    }
+  }
+  else {
+    while(1) {
+      if(rg_node->rg_end < rg_elmt->rg_start) {
+        if(rg_node->rg_next == NULL) {
+          rg_node->rg_next = rg_elmt;
+          break;
+        }
+        else {
+          if(rg_node->rg_next->rg_start > rg_elmt->rg_end) {
+            rg_elmt->rg_next = rg_node->rg_next;
+            rg_node->rg_next = rg_elmt;
+            break;
+          }
+          else if(rg_node->rg_next->rg_start == rg_elmt->rg_end) {
+            rg_node->rg_next->rg_start = rg_elmt->rg_start;
+            free(rg_elmt);
+            break;
+          }
+        }
+      }
+      else if(rg_node->rg_end == rg_elmt->rg_start) {
+        if(rg_node->rg_next == NULL) {
+          rg_node->rg_end = rg_elmt->rg_end;
+          free(rg_elmt);
+          break;
+        }
+        else {
+          if(rg_node->rg_next->rg_start > rg_elmt->rg_end) {
+            rg_node->rg_end = rg_elmt->rg_end;
+            free(rg_elmt);
+            break;
+          }
+          else if(rg_node->rg_next->rg_start == rg_elmt->rg_end) {
+            struct  vm_rg_struct *next_rg;
+            next_rg = rg_node->rg_next;
+            rg_node->rg_end = rg_node->rg_next->rg_end;
+            rg_node->rg_next = rg_node->rg_next->rg_next;
+            free(next_rg);
+            free(rg_elmt);
+            break;
+          }
+        }
+      }
+      rg_node = rg_node->rg_next;
+    }
+  }
 
   return 0;
 }
@@ -116,7 +172,7 @@ int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr
     remain_rg->rg_start = old_sbrk + size;
     remain_rg->rg_end = cur_vma->sbrk;
     remain_rg->rg_next = NULL;
-    enlist_vm_freerg_list(caller->mm,*remain_rg);
+    enlist_vm_freerg_list(caller->mm,remain_rg);
   }
   *alloc_addr = old_sbrk;
 
@@ -142,7 +198,7 @@ int __free(struct pcb_t *caller, int vmaid, int rgid)
   rgnode.rg_end = caller->mm->symrgtbl[rgid].rg_end;
 
   /*enlist the obsoleted memory region */
-  enlist_vm_freerg_list(caller->mm, rgnode);
+  enlist_vm_freerg_list(caller->mm, &rgnode);
 
   return 0;
 }
@@ -205,7 +261,7 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     __swap_cp_page(caller->mram,vicfpn,caller->active_mswp,swpfpn);
     /* Copy target frame from swap to mem */
     __swap_cp_page(caller->active_mswp,tgtfpn,caller->mram,vicfpn);
-
+    MEMPHY_put_freefp(caller->active_mswp, tgtfpn);
     /* Update page table */
     pte_set_swap(&caller->mm->pgd[vicfpn],0,swpfpn);
 
@@ -451,6 +507,7 @@ int inc_vma_limit(struct pcb_t *caller, int vmaid, int inc_sz)
   /* The obtained vm area (only) 
    * now will be alloc real ram region */
   cur_vma->vm_end += inc_sz;
+  cur_vma->sbrk += inc_sz;
   if (vm_map_ram(caller, area->rg_start, area->rg_end, 
                     old_end, incnumpage , newrg) < 0)
     return -1; /* Map the memory to MEMRAM */
