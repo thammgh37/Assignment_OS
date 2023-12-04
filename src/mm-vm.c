@@ -22,6 +22,7 @@ int enlist_vm_freerg_list(struct mm_struct *mm, struct vm_rg_struct* rg_elmt)
     return -1;
 
   /* Enlist the new region */
+  // FIXED
   rg_elmt->rg_next = NULL;
   if (rg_node == NULL) {
     mm->mmap->vm_freerg_list = rg_elmt;
@@ -106,6 +107,7 @@ struct vm_area_struct *get_vma_by_num(struct mm_struct *mm, int vmaid)
 	  return NULL;
 
     pvma = pvma->vm_next;
+    vmait++;
   }
 
   return pvma;
@@ -262,6 +264,7 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     /* Copy target frame from swap to mem */
     __swap_cp_page(caller->active_mswp,tgtfpn,caller->mram,vicfpn);
     MEMPHY_put_freefp(caller->active_mswp, tgtfpn);
+    // FIX:
     /* Update page table */
     pte_set_swap(&caller->mm->pgd[vicfpn],0,swpfpn);
 

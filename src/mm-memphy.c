@@ -6,7 +6,7 @@
 
 #include "mm.h"
 #include <stdlib.h>
-
+#include "stdio.h"
 /*
  *  MEMPHY_mv_csr - move MEMPHY cursor
  *  @mp: memphy struct
@@ -122,7 +122,7 @@ int MEMPHY_format(struct memphy_struct *mp, int pagesz)
     /* Init head of free framephy list */ 
     fst = malloc(sizeof(struct framephy_struct));
     fst->fpn = iter;
-    fst->fp_next = NULL;
+    fst->fp_next = NULL; // FIX
     mp->free_fp_list = fst;
 
     /* We have list with first element, fill in the rest num-1 element member*/
@@ -162,9 +162,10 @@ int MEMPHY_dump(struct memphy_struct * mp)
      *     for tracing the memory content
      */
     printf("-----MEMORY CONTENT-----\n");
+   //  FIX: long i
     for(int i = 0 ;i <mp->maxsz;i++){
       if (mp->storage[i] != 0 ){
-         printf("%08x : %08x\n",i*4,mp->storage[i]);
+         printf("%08x: %08x\n",i*4,mp->storage[i]);
       }
     }
     return 0;
