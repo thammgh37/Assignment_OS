@@ -44,9 +44,38 @@ void init_scheduler(void) {
  */
 struct pcb_t * get_mlq_proc(void) {
 	struct pcb_t * proc = NULL;
+	static unsigned int current_queue = 0;
+	static unsigned int used_CPU_time = 0;
 	/*TODO: get a process from PRIORITY [ready_queue].
 	 * Remember to use lock to protect the queue.
 	 * */
+	int num_queue_search = 0;
+	pthread_mutex_lock(&queue_lock);
+
+	while(1){
+		if(num_queue_search >= MAX_PRIO){
+			break;
+		}
+		if(used_CPU_time >= (MAX_PRIO - current_queue)){
+			used_CPU_time = 0;
+			current_queue++;
+		}
+		if(current_queue >= MAX_PRIO){
+			current_queue = 0;
+		}
+		if(!empty(&mlq_ready_queue[current_queue])){
+			proc = dequeue(&mlq_ready_queue[current_queue]);
+			used_CPU_time++;
+			printf("used_time = %d\n", used_CPU_time);
+			break;
+		}
+		else{
+			current_queue++;
+			used_CPU_time = 0;
+			num_queue_search++;
+		}
+	}
+	pthread_mutex_unlock(&queue_lock);
 	return proc;	
 }
 
@@ -79,6 +108,11 @@ struct pcb_t * get_proc(void) {
 	/*TODO: get a process from [ready_queue].
 	 * Remember to use lock to protect the queue.
 	 * */
+	pthread_mutex_lock(&queue_lock);
+	if(!empty(&ready_queue)){
+		proc = dequeue(&ready_queue);
+	}
+	pthread_mutex_unlock(&queue_lock);
 	return proc;
 }
 

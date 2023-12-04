@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 static int time_slot;
 static int num_cpus;
@@ -165,11 +166,13 @@ static void read_config(const char * path) {
 	 * Format: (size=0 result non-used memswap, must have RAM and at least 1 SWAP)
 	 *        MEM_RAM_SZ MEM_SWP0_SZ MEM_SWP1_SZ MEM_SWP2_SZ MEM_SWP3_SZ
 	*/
+/*
 	fscanf(file, "%d\n", &memramsz);
 	for(sit = 0; sit < PAGING_MAX_MMSWP; sit++)
 		fscanf(file, "%d", &(memswpsz[sit])); 
 
-       fscanf(file, "\n"); /* Final character */
+       fscanf(file, "\n");  Final character */ 
+	   
 #endif
 #endif
 
@@ -185,6 +188,7 @@ static void read_config(const char * path) {
 		char proc[100];
 #ifdef MLQ_SCHED
 		fscanf(file, "%lu %s %lu\n", &ld_processes.start_time[i], proc, &ld_processes.prio[i]);
+		//printf("%s\n",proc);
 #else
 		fscanf(file, "%lu %s\n", &ld_processes.start_time[i], proc);
 #endif
