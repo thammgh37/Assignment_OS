@@ -53,8 +53,10 @@ struct mm_struct {
    /* Currently we support a fixed number of symbol */
    struct vm_rg_struct symrgtbl[PAGING_MAX_SYMTBL_SZ];
 
+   int allocated[PAGING_MAX_SYMTBL_SZ];
    /* list of free page */
    struct pgn_t *fifo_pgn;
+   struct pgn_t *fifo_tail_pgn;
 };
 
 /*

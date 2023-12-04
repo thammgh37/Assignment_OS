@@ -162,11 +162,12 @@ int MEMPHY_dump(struct memphy_struct * mp)
      *     for tracing the memory content
      */
     printf("-----MEMORY CONTENT-----\n");
-    for(int i = 0 ;i <mp->maxsz;i++){
+    for(long int i = 0 ;i < mp->maxsz;i++){
       if (mp->storage[i] != 0 ){
-         printf("%08x : %08x\n",i*4,mp->storage[i]);
+         printf("0x%08lx : %08x\n", i ,mp->storage[i]);
       }
     }
+    printf("\n");
     return 0;
 }
 

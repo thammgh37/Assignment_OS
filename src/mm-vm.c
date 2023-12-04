@@ -106,6 +106,7 @@ struct vm_area_struct *get_vma_by_num(struct mm_struct *mm, int vmaid)
 	  return NULL;
 
     pvma = pvma->vm_next;
+    vmait++;
   }
 
   return pvma;
@@ -121,6 +122,10 @@ struct vm_rg_struct *get_symrg_byid(struct mm_struct *mm, int rgid)
   if(rgid < 0 || rgid > PAGING_MAX_SYMTBL_SZ)
     return NULL;
 
+  if ( mm->allocated[rgid] == 0){
+    return NULL;
+  }
+
   return &mm->symrgtbl[rgid];
 }
 
@@ -134,6 +139,13 @@ struct vm_rg_struct *get_symrg_byid(struct mm_struct *mm, int rgid)
  */
 int __alloc(struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
 {
+  if ( size <= 0){
+    return -1;
+  }
+  
+  /* Set the allocated rg*/
+  caller->mm->allocated[rgid] = 1 ;
+
   /*Allocate at the toproof */
   struct vm_rg_struct rgnode;
 
@@ -193,9 +205,17 @@ int __free(struct pcb_t *caller, int vmaid, int rgid)
   if(rgid < 0 || rgid > PAGING_MAX_SYMTBL_SZ)
     return -1;
 
+  /* Double free */
+  if(caller->mm->allocated[rgid] == 0) {
+    return -1;
+  }
+
   /* TODO: Manage the collect freed region to freerg_list */
   rgnode.rg_start = caller->mm->symrgtbl[rgid].rg_start;
   rgnode.rg_end = caller->mm->symrgtbl[rgid].rg_end;
+
+  /* Reset allocated value */
+  caller->mm->allocated[rgid] = 0;
 
   /*enlist the obsoleted memory region */
   enlist_vm_freerg_list(caller->mm, &rgnode);
@@ -213,7 +233,12 @@ int pgalloc(struct pcb_t *proc, uint32_t size, uint32_t reg_index)
   int addr;
 
   /* By default using vmaid = 0 */
-  return __alloc(proc, 0, reg_index, size, &addr);
+  int returned_val = __alloc(proc, 0, reg_index, size, &addr);
+  if(returned_val < 0) {
+    printf("allocating error: invalid size value\n");
+    return returned_val;
+  }
+  return returned_val;
 }
 
 /*pgfree - PAGING-based free a region memory
@@ -224,7 +249,12 @@ int pgalloc(struct pcb_t *proc, uint32_t size, uint32_t reg_index)
 
 int pgfree_data(struct pcb_t *proc, uint32_t reg_index)
 {
-   return __free(proc, 0, reg_index);
+  int returned_val =__free(proc, 0, reg_index);
+  if(returned_val < 0) {
+    printf("free error: double free\n");
+    return returned_val;
+  }
+  return returned_val;
 }
 
 /*pg_getpage - get the page in ram
@@ -340,6 +370,11 @@ int __read(struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE *data)
   if(currg == NULL || cur_vma == NULL) /* Invalid memory identify */
 	  return -1;
 
+  /* Read out of region range */
+  if(currg->rg_start + offset >= currg->rg_end) {
+    return -1;
+  }
+
   pg_getval(caller->mm, currg->rg_start + offset, data, caller);
 
   return 0;
@@ -355,7 +390,10 @@ int pgread(
 {
   BYTE data;
   int val = __read(proc, 0, source, offset, &data);
-
+  if(val < 0) {
+    printf("reading error: not allocated or out of region range\n");
+    return val;
+  }
   destination = (uint32_t) data;
 #ifdef IODUMP
   printf("read region=%d offset=%d value=%d\n", source, offset, data);
@@ -384,6 +422,11 @@ int __write(struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
   
   if(currg == NULL || cur_vma == NULL) /* Invalid memory identify */
 	  return -1;
+
+  /* Write out of region range */
+  if(currg->rg_start + offset >= currg->rg_end) {
+    return -1;
+  }
 
   pg_setval(caller->mm, currg->rg_start + offset, value, caller);
 
@@ -588,6 +631,7 @@ int get_free_vmrg_area(struct pcb_t *caller, int vmaid, int size, struct vm_rg_s
           rgit->rg_next = NULL;
         }
       }
+      break;
     }
     else
     {

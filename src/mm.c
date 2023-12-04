@@ -102,7 +102,7 @@ int vmap_page_range(struct pcb_t *caller, // process call
     pte = 0;
     if(fpit->in_RAM == 1){
       init_pte(&pte, 1, fpit->fpn, 0, 0, 0, 0);
-      enlist_pgn_node(&caller->mm->fifo_pgn,pgn + pgit);
+      enlist_pgn_node(&caller->mm->fifo_pgn,&caller->mm->fifo_tail_pgn,pgn + pgit);
     }
     else{
       init_pte(&pte, 1, 0, 0, 1, 0, fpit->fpn);
@@ -135,7 +135,7 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
   for(pgit = 0; pgit < req_pgnum; pgit++)
   {
     if(MEMPHY_get_freefp(caller->mram, &fpn) == 0)
-   {
+    {
      if(pgit == 0){
       fst = malloc(sizeof(struct framephy_struct));
       fst->fpn = fpn;
@@ -162,7 +162,7 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
         fst->fp_next = NULL;
         fst->owner = caller->mm;
         *frm_lst = fst;
-      }
+    }
     else {
       newfp_str = malloc(sizeof(struct framephy_struct));
       newfp_str->fpn = fpn;
@@ -176,7 +176,7 @@ int alloc_pages_range(struct pcb_t *caller, int req_pgnum, struct framephy_struc
   else{
     return -3000;
   }
- }
+}
 
   return 0;
 }
@@ -273,6 +273,14 @@ int init_mm(struct mm_struct *mm, struct pcb_t *caller)
 
   mm->mmap = vma;
 
+    /* Initialize fifo_pgn */
+  mm->fifo_pgn = NULL;
+  mm->fifo_tail_pgn = NULL;
+
+  /* Initialize symbol table */
+  for(long int id = 0; id < PAGING_MAX_SYMTBL_SZ; id++) {
+    mm->allocated[id] = 0;
+  }
   return 0;
 }
 
@@ -295,14 +303,21 @@ int enlist_vm_rg_node(struct vm_rg_struct **rglist, struct vm_rg_struct* rgnode)
   return 0;
 }
 
-int enlist_pgn_node(struct pgn_t **plist, int pgn)
+int enlist_pgn_node(struct pgn_t **plist,struct pgn_t **ptail, int pgn)
 {
   struct pgn_t* pnode = malloc(sizeof(struct pgn_t));
 
   pnode->pgn = pgn;
   pnode->pg_next = *plist;
-  *plist = pnode;
 
+  if(*plist == NULL) {
+    *plist = pnode;
+    *ptail = pnode;
+  }
+  else {
+    (*ptail)->pg_next = pnode;
+    *ptail = pnode;
+  }
   return 0;
 }
 
