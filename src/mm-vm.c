@@ -265,7 +265,6 @@ int pgfree_data(struct pcb_t *proc, uint32_t reg_index)
   int returned_val = __free(proc, 0, reg_index);
   if(returned_val < 0) {
     printf("free error: double free\n");
-    return returned_val;
   }
 #ifdef IO_DUMP
   printf("free reg=%d\n", reg_index);
@@ -279,14 +278,11 @@ int pgfree_data(struct pcb_t *proc, uint32_t reg_index)
 #endif
   return returned_val;
 }
-
-/*pg_getpage - get the page in ram
- *@mm: memory region
- *@pagenum: PGN
- *@framenum: return FPN
- *@caller: caller
- *
- */
+//  *@pagenum: PGN
+//  *@framenum: return FPN
+//  *@caller: caller
+//  *
+//  */
 int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 {
   uint32_t pte = mm->pgd[pgn];

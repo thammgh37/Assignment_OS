@@ -11,7 +11,6 @@
 /* 
  * init_pte - Initialize PTE entry
  */
-// DIFF
 int init_pte(uint32_t *pte,
              int pre,    // present
              int fpn,    // FPN
