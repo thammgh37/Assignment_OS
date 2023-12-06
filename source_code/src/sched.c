@@ -66,7 +66,6 @@ struct pcb_t * get_mlq_proc(void) {
 		if(!empty(&mlq_ready_queue[current_queue])){
 			proc = dequeue(&mlq_ready_queue[current_queue]);
 			used_CPU_time++;
-			printf("used_time = %d\n", used_CPU_time);
 			break;
 		}
 		else{
@@ -74,6 +73,10 @@ struct pcb_t * get_mlq_proc(void) {
 			used_CPU_time = 0;
 			num_queue_search++;
 		}
+	}
+	// if there is no process to execute, at the next time slot, scheduler will search from queue prio = 0
+	if(proc == NULL){
+		current_queue = 0;
 	}
 	pthread_mutex_unlock(&queue_lock);
 	return proc;	
@@ -128,5 +131,3 @@ void add_proc(struct pcb_t * proc) {
 	pthread_mutex_unlock(&queue_lock);	
 }
 #endif
-
-

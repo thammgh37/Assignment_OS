@@ -1,12 +1,12 @@
-//#ifdef MM_PAGING
 /*
  * PAGING based Memory Management
  * Memory physical module mm/mm-memphy.c
  */
 
 #include "mm.h"
+#ifdef MM_PAGING
 #include <stdlib.h>
-
+#include <stdio.h>
 /*
  *  MEMPHY_mv_csr - move MEMPHY cursor
  *  @mp: memphy struct
@@ -22,7 +22,7 @@ int MEMPHY_mv_csr(struct memphy_struct *mp, int offset)
      mp->cursor = (mp->cursor + 1) % mp->maxsz;
      numstep++;
    }
-
+   
    return 0;
 }
 
@@ -39,7 +39,7 @@ int MEMPHY_seq_read(struct memphy_struct *mp, int addr, BYTE *value)
 
    if (!mp->rdmflg)
      return -1; /* Not compatible mode for sequential read */
-
+   // Move cursor to the suitable address
    MEMPHY_mv_csr(mp, addr);
    *value = (BYTE) mp->storage[addr];
 
@@ -56,7 +56,7 @@ int MEMPHY_read(struct memphy_struct * mp, int addr, BYTE *value)
 {
    if (mp == NULL)
      return -1;
-
+// Check if the RAM is random access or not
    if (mp->rdmflg)
       *value = mp->storage[addr];
    else /* Sequential access device */
@@ -73,7 +73,6 @@ int MEMPHY_read(struct memphy_struct * mp, int addr, BYTE *value)
  */
 int MEMPHY_seq_write(struct memphy_struct * mp, int addr, BYTE value)
 {
-
    if (mp == NULL)
      return -1;
 
@@ -111,7 +110,7 @@ int MEMPHY_write(struct memphy_struct * mp, int addr, BYTE data)
  */
 int MEMPHY_format(struct memphy_struct *mp, int pagesz)
 {
-    /* This setting come with fixed constant PAGESZ */
+   /* This setting come with fixed constant PAGESZ */
     int numfp = mp->maxsz / pagesz;
     struct framephy_struct *newfst, *fst;
     int iter = 0;
@@ -122,6 +121,7 @@ int MEMPHY_format(struct memphy_struct *mp, int pagesz)
     /* Init head of free framephy list */ 
     fst = malloc(sizeof(struct framephy_struct));
     fst->fpn = iter;
+    fst->fp_next = NULL;
     mp->free_fp_list = fst;
 
     /* We have list with first element, fill in the rest num-1 element member*/
@@ -157,11 +157,18 @@ int MEMPHY_get_freefp(struct memphy_struct *mp, int *retfpn)
 
 int MEMPHY_dump(struct memphy_struct * mp)
 {
-    /*TODO dump memphy contnt mp->storage 
+   /*TODO dump memphy contnt mp->storage 
      *     for tracing the memory content
      */
-
-    return 0;
+   long int addr = 0;
+   printf("------RAM CONTENT------\n");
+   for(; addr < mp->maxsz; addr++) {
+      if(mp->storage[addr] != 0) {
+         printf("0x%08lx: %08x\n", addr, mp->storage[addr]);
+      }
+   }
+   printf("\n");
+   return 0;
 }
 
 int MEMPHY_put_freefp(struct memphy_struct *mp, int fpn)
@@ -196,4 +203,4 @@ int init_memphy(struct memphy_struct *mp, int max_size, int randomflg)
    return 0;
 }
 
-//#endif
+#endif

@@ -1,7 +1,7 @@
 #ifndef OSMM_H
 #define OSMM_H
 
-#define MM_PAGING
+#include "os_config.h"
 #define PAGING_MAX_MMSWP 4 /* max number of supported swapped space */
 #define PAGING_MAX_SYMTBL_SZ 30
 
@@ -53,8 +53,11 @@ struct mm_struct {
    /* Currently we support a fixed number of symbol */
    struct vm_rg_struct symrgtbl[PAGING_MAX_SYMTBL_SZ];
 
+   // PhongADD
+   int allocated[PAGING_MAX_SYMTBL_SZ];
    /* list of free page */
    struct pgn_t *fifo_pgn;
+   struct pgn_t * fifo_pgn_tail;
 };
 
 /*
@@ -66,6 +69,8 @@ struct framephy_struct {
 
    /* Resereed for tracking allocated framed */
    struct mm_struct* owner;
+
+   int in_RAM;
 };
 
 struct memphy_struct {

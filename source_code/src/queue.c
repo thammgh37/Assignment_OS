@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "queue.h"
 
+#define MAX_INT 100000
+
 int empty(struct queue_t * q) {
         if (q == NULL) return 1;
 	return (q->size == 0);
@@ -42,4 +44,3 @@ struct pcb_t * dequeue(struct queue_t * q) {
         q->size--;
 	return proc_return;
 }
-

@@ -126,6 +126,7 @@ int free_mem(addr_t address, struct pcb_t * proc) {
 
 int read_mem(addr_t address, struct pcb_t * proc, BYTE * data) {
 	addr_t physical_addr;
+	// Translate from logical address to physical address
 	if (translate(address, &physical_addr, proc)) {
 		*data = _ram[physical_addr];
 		return 0;
