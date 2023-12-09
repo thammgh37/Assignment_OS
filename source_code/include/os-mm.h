@@ -55,6 +55,7 @@ struct mm_struct {
 
    // PhongADD
    int allocated[PAGING_MAX_SYMTBL_SZ];
+
    /* list of free page */
    struct pgn_t *fifo_pgn;
    struct pgn_t * fifo_pgn_tail;
@@ -73,7 +74,7 @@ struct framephy_struct {
    int in_RAM;
 };
 
-struct memphy_struct {
+struct memphy_struct{
    /* Basic field of data and size */
    BYTE *storage;
    int maxsz;

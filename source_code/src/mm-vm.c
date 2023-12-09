@@ -303,10 +303,10 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     find_victim_page(caller->mm, &vicpgn);
 
     /* Find victim frame */
-    vicfpn = PAGING_FPN(mm->pgd[vicpgn]);
+    vicfpn = REVISE_PAGING_FPN(mm->pgd[vicpgn]);
     
     /* The target frame storing our variable */
-    tgtfpn = PAGING_SWP(pte);
+    tgtfpn = REVISE_PAGING_SWP(pte);
 
     /* Get free frame in MEMSWP */
     MEMPHY_get_freefp(caller->active_mswp, &swpfpn);
@@ -335,9 +335,7 @@ int pg_getpage(struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
     enlist_pgn_node(&caller->mm->fifo_pgn, &caller->mm->fifo_pgn_tail, pgn);
   }
-
-  *fpn = PAGING_FPN(pte);
-
+  *fpn = REVISE_PAGING_FPN(pte);
   return 0;
 }
 /*pg_getval - read value at given offset
@@ -511,11 +509,11 @@ int free_pcb_memph(struct pcb_t *caller)
     if(PAGING_PAGE_PRESENT(pte))
     {
       if(PAGING_PAGE_SWAPPED(pte)) { 
-        fpn = PAGING_SWP(pte);
+        fpn = REVISE_PAGING_SWP(pte);
         MEMPHY_put_freefp(caller->active_mswp, fpn);    
       }
       else {
-        fpn = PAGING_FPN(pte);
+        fpn = REVISE_PAGING_FPN(pte);
         MEMPHY_put_freefp(caller->mram, fpn);
       }
     }
