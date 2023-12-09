@@ -13,7 +13,7 @@
 static int time_slot;
 static int num_cpus;
 static int done = 0;
-
+static pthread_mutex_t process_mtx;
 #ifdef MM_PAGING
 static int memramsz;
 static int memswpsz[PAGING_MAX_MMSWP];
@@ -90,7 +90,9 @@ static void * cpu_routine(void * args) {
 		}
 		
 		/* Run current process */
+		pthread_mutex_lock(&process_mtx);
 		run(proc);
+		pthread_mutex_unlock(&process_mtx);
 		time_left--;
 		next_slot(timer_id);
 	}
@@ -198,6 +200,7 @@ int main(int argc, char * argv[]) {
 		printf("Usage: os [path to configure file]\n");
 		return 1;
 	}
+	pthread_mutex_init(&process_mtx , NULL);
 	char path[100];
 	path[0] = '\0';
 	strcat(path, "input/");
