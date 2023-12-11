@@ -91,7 +91,7 @@ int vmap_page_range(struct pcb_t *caller, // process call
   //int  fpn;
   uint32_t pte;
   struct framephy_struct *fst = frames;
-  int pgit = 0;
+  int pg_counter = 0;
   int pgn = PAGING_PGN(addr);
 
   ret_rg->rg_end = ret_rg->rg_start = addr; // at least the very first space is usable
@@ -105,16 +105,16 @@ int vmap_page_range(struct pcb_t *caller, // process call
 
    /* Tracking for later page replacement activities (if needed)
     * Enqueue new usage page */
-  for(;pgit < pgnum; pgit++) {
+  for(;pg_counter < pgnum; pg_counter++) {
     pte = 0;
     if(fst->in_RAM == 1) {
       init_pte(&pte, 1, fst->fpn, 0, 0, 0, 0);
-      enlist_pgn_node(&caller->mm->fifo_pgn, &caller->mm->fifo_pgn_tail, pgn + pgit);
+      enlist_pgn_node(&caller->mm->fifo_pgn, &caller->mm->fifo_pgn_tail, pgn + pg_counter);
     }
     else {
       init_pte(&pte, 1, 0, 0, 1, 0, fst->fpn);
     }
-    caller->mm->pgd[pgit + pgn] = pte;
+    caller->mm->pgd[pg_counter + pgn] = pte;
     fst = fst->fp_next;
     free(frames);
     frames = fst;

@@ -8,6 +8,7 @@ Time slot   1
 ==================
 Time slot   2
 	Loaded a process at input/proc/p1s, PID: 2 PRIO: 15
+	CPU 0: Dispatched process  2
 allocate region=300 reg=0
 ------PAGE TABLE CONTENT------
 print_pgtbl: 0 - 512
@@ -33,7 +34,6 @@ print_list_rg:
 rg[300->512]
 rg[812->1024]
 
-	CPU 0: Dispatched process  2
 ==================
 Time slot   4
 free reg=0
@@ -92,11 +92,11 @@ print_pgtbl: 0 - 1024
 ==================
 Time slot   8
 writing error: not allocated or out of region range
+	CPU 0: Put process  2 to run queue
+	CPU 0: Dispatched process  2
 ==================
 Time slot   9
 reading error: not allocated or out of region range
-	CPU 0: Put process  2 to run queue
-	CPU 0: Dispatched process  2
 ==================
 Time slot  10
 writing error: not allocated or out of region range
@@ -105,6 +105,8 @@ Time slot  11
 reading error: not allocated or out of region range
 ==================
 Time slot  12
+	CPU 0: Processed  2 has finished
+	CPU 0 stopped
 ==================
 Time slot  13
 	CPU 1: Put process  1 to run queue
@@ -121,8 +123,6 @@ print_pgtbl: 0 - 1024
 print_list_rg: 
 rg[100->1024]
 
-	CPU 0: Processed  2 has finished
-	CPU 0 stopped
 ==================
 Time slot  14
 ==================

@@ -160,11 +160,11 @@ int MEMPHY_dump(struct memphy_struct * mp)
    /*TODO dump memphy contnt mp->storage 
      *     for tracing the memory content
      */
-   long int addr = 0;
+   
    printf("------RAM CONTENT------\n");
-   for(; addr < mp->maxsz; addr++) {
-      if(mp->storage[addr] != 0) {
-         printf("0x%08lx: %08x\n", addr, mp->storage[addr]);
+   for(long int ram_address = 0; ram_address < mp->maxsz; ram_address++) {
+      if(mp->storage[ram_address] != 0) {
+         printf("0x%08lx: %08x\n", ram_address, mp->storage[ram_address]);
       }
    }
    printf("\n");

@@ -97,9 +97,9 @@ Time slot  14
 Time slot  15
 ==================
 Time slot  16
-	Loaded a process at input/proc/s1, PID: 8 PRIO: 0
 	CPU 0: Put process  6 to run queue
 	CPU 0: Dispatched process  3
+	Loaded a process at input/proc/s1, PID: 8 PRIO: 0
 free reg=2
 ------PAGE TABLE CONTENT------
 print_pgtbl: 0 - 512

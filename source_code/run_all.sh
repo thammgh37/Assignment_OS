@@ -1,4 +1,6 @@
 #!/bin/bash
+make clean
+make all
 ./os os_0_mlq_paging > our_output/os_0_mlq_paing.output
 ./os os_1_mlq_paging > our_output/os_1_mlq_paing.output
 ./os os_1_mlq_paging_small_1K  > our_output/os_1_mlq_paing_small_1K.output 
